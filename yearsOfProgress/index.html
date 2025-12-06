@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今年还剩多少天？</title>
+  <style>
+    :root {
+      --bg-1: #0e1c26;
+      --bg-2: #1f3b4d;
+      --accent: #4fd1c5;
+      --accent-2: #7c5dfa;
+      --text: #ecf2f8;
+      --muted: #9eb3c7;
+      --card: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.15);
+      --glow: rgba(127, 159, 255, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      font-family: "Avenir Next", "SF Pro Rounded", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, rgba(79, 209, 197, 0.15), transparent 30%),
+                  radial-gradient(circle at 80% 0%, rgba(124, 93, 250, 0.2), transparent 28%),
+                  linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .shell {
+      width: min(960px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.02),
+        0 0 60px var(--glow);
+      backdrop-filter: blur(12px);
+      animation: floatIn 0.9s ease;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 32px);
+      letter-spacing: 0.4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(79, 209, 197, 0.18), rgba(124, 93, 250, 0.2));
+      border: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .big-number {
+      font-size: clamp(64px, 9vw, 110px);
+      font-weight: 700;
+      margin: 6px 0 0;
+      letter-spacing: -1px;
+    }
+
+    .subline {
+      margin: 6px 0 16px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .progress {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress span {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transform-origin: left;
+      transform: scaleX(0);
+      animation: fill 1.4s ease forwards;
+      box-shadow: 0 0 25px rgba(79, 209, 197, 0.3);
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .meta .card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meta label {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .meta strong {
+      font-size: 20px;
+    }
+
+    .detail {
+      line-height: 1.6;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .timeline {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(79, 209, 197, 0.15);
+      position: relative;
+    }
+
+    .line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .callout {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px dashed var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .callout button {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #0b1320;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .callout button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fill {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    @media (max-width: 780px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .callout {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="pill">🌱 今年的剩余时间</div>
+        <h1>倒计时让今天更有分量</h1>
+      </div>
+      <div class="pill" id="today">今天</div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="subline">距离年底还有</div>
+        <div class="big-number" id="daysLeft">000</div>
+        <div class="subline" id="progressLabel"></div>
+        <div class="progress"><span id="progressBar"></span></div>
+        <div class="timeline">
+          <div class="dot"></div>
+          <div class="line"></div>
+          <div class="dot" style="background: var(--accent-2); box-shadow: 0 0 0 6px rgba(124, 93, 250, 0.18);"></div>
+        </div>
+        <div class="callout">
+          <span id="prompt">给自己一个小目标，让这一天有回声。</span>
+          <button id="miniAction">记录一下</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="detail">
+          这一刻的倒计时是为了提醒：时间是最昂贵的资源。哪怕只提前完成一件微小的事，都能让年底的你少一点遗憾。
+        </div>
+        <div class="meta">
+          <div class="card">
+            <label>今年结束于</label>
+            <strong id="endDate"></strong>
+          </div>
+          <div class="card">
+            <label>今年已过去</label>
+            <strong id="pastDays"></strong>
+          </div>
+          <div class="card">
+            <label>剩余占比</label>
+            <strong id="remainingPercent"></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const now = new Date();
+    const year = now.getFullYear();
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+
+    const msInDay = 24 * 60 * 60 * 1000;
+    const daysPast = Math.floor((now - startOfYear) / msInDay);
+    const totalDays = Math.round((endOfYear - startOfYear) / msInDay) + 1;
+    const daysLeft = totalDays - daysPast - 1; // exclude today
+    const percentLeft = Math.max(0, daysLeft / totalDays * 100);
+
+    const formatDate = (d) => {
+      const month = `${d.getMonth() + 1}`.padStart(2, "0");
+      const day = `${d.getDate()}`.padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    document.getElementById("daysLeft").textContent = daysLeft;
+    document.getElementById("progressLabel").textContent = `今年还剩下 ${daysLeft} 天 · 剩余 ${percentLeft.toFixed(1)}%`;
+    document.getElementById("progressBar").style.transform = `scaleX(${percentLeft / 100})`;
+    document.getElementById("today").textContent = `今天 · ${formatDate(now)}`;
+    document.getElementById("endDate").textContent = `${formatDate(endOfYear)}`;
+    document.getElementById("pastDays").textContent = `${daysPast} 天`;
+    document.getElementById("remainingPercent").textContent = `${percentLeft.toFixed(1)}%`;
+
+    const prompts = [
+      "写下今晚要完成的一件小事，别让今天空白。",
+      "提前计划明早第一小时要做什么。",
+      "挑一件一直拖着的事，砍掉一个阻碍。",
+      "用 20 分钟学习新知识，给自己加一点厚度。",
+      "联系一个很久没问候的人，时间不等人。"
+    ];
+    const promptEl = document.getElementById("prompt");
+    promptEl.textContent = prompts[Math.floor(Math.random() * prompts.length)];
+
+    document.getElementById("miniAction").addEventListener("click", () => {
+      const note = prompt("今天要完成的小目标是？");
+      if (!note) return;
+      promptEl.textContent = `已写下：${note}`;
+    });
+  </script>
+</body>
+</html>
